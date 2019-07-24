@@ -1,38 +1,70 @@
-#!/usr/bin bash
+#!/usr/bin/env bash
 
 # set env
 set -e
 
+# export environment variables
+source .env
+
 # create sequrity group for ecs cluster
-aws ec2 create-security-group --group-name "${CONTAINER_INSTANCE_SG_NAME}" --description "${CONTAINER_INSTANCE_SG_DESC}"
+aws ec2 create-security-group \
+        --group-name "${CONTAINER_INSTANCE_SG}" \
+        --description "${CONTAINER_INSTANCE_SG_DESC}" \
+        --vpc-id "${VPC}"
+echo "security group created for ECS cluster container instance"
 
 # create sequrity group for ecs ELB
-aws ec2 create-security-group --group-name "${ELB_SG_NAME}" --description "${ELB_SG_DESC}"
+aws ec2 create-security-group \
+        --group-name "${ELB_SG_NAME}" \
+        --description "${ELB_SG_DESC}" \
+        --vpc-id "${VPC}"
+echo "security group created for ELB"
 
-# allow trafic for elb
-aws ec2 authorize-security-group-ingress --group-name "${ELB_SG_NAME}" --protocol tcp --port "${ELB_PORT}" --source-group "${TRAFFIC_FROM_ANYWHERE}"
+# allow traffic for elb
+aws ec2 authorize-security-group-ingress \
+        --group-name "${ELB_SG_NAME}" \
+        --protocol tcp \
+        --port "${ELB_PORT}" \
+        --cidr "${TRAFFIC_FROM_ANYWHERE}"
+echo "allowed traffic for ELB"
 
 # allow traffic from elb
-aws ec2 authorize-security-group-ingress --group-name "${CONTAINER_INSTANCE_SG_NAME}" --protocol tcp --port 1-65535 --source-group "${ELB_SG_NAME}"
+aws ec2 authorize-security-group-ingress \
+        --group-name "${CONTAINER_INSTANCE_SG}" \
+        --protocol tcp \
+        --port 1-65535 \
+        --source-group "${ELB_SG_NAME}"
+echo "allowed traffic from ELB to ECS container instance"
 
 # get ELB security group_id
-ELB_SG_IDS=$(aws ec2 describe-security-groups --query "SecurityGroups[?GroupName=='$ELB_SG_NAME'].GroupId" --region "${CLUSTER_REGION}" --output text)
+ELB_SG_ID=$(aws ec2 describe-security-groups --query "SecurityGroups[?GroupName=='$ELB_SG_NAME'].GroupId" --region "${CLUSTER_REGION}" --output text)
+echo "Fetched security ELB group id"
 
 # create application load balancer
-aws elbv2 create-load-balancer --name "${ELB_NAME}" --type "${ELB_TYPE}" --subnets "${SUBNETS}" --security-groups "${ELB_SG_IDS[0]}"
+aws elbv2 create-load-balancer \
+          --name "${ELB_NAME}" \
+          --subnets "${SUBNETS}" \
+          --security-groups "${ELB_SG_ID}" \
+          --tags "${KEY}=${OWNER_KEY},${VALUE}=${OWNER_NAME}"
+echo "created ELB"
 
 # create tragetgroup for elb
-aws elbv2 create-target-group --name "${ELB_TG_NAME}" --protocol HTTP --port "${ELB_PORT}" --vpc-id "${VPC}"
-
-# export environment variables
-export "$(grep -v '^#' $(PWD)/.env | xargs)"
+aws elbv2 create-target-group \
+          --name "${ELB_TG_NAME}" \
+          --protocol HTTP \
+          --port "${ELB_PORT}" \
+          --vpc-id "${VPC}" \
+          --health-check-path "${ELB_TG_HEALTH_CHECK_PATH}"
+echo "created ELB TG"
 
 ecs-cli configure --cluster "${CLUSTER_NAME}" \
                   --region "${CLUSTER_REGION}" \
                   --default-launch-type "${LAUNCH_TYPE}" \
                   --config-name "${CLUSTER_CONFIG_NAME}"
 
-ecs-cli up --security-group "${CONTAINER_INSTANCE_SG_NAME}" \
+echo "configured ECS cluster"
+
+ecs-cli up --security-group "${CONTAINER_INSTANCE_SG}" \
            --vpc "${VPC}" \
            --subnets "${SUBNETS}" \
            --keypair "${CONTAINER_INSTANCE_KP}" \
@@ -41,5 +73,7 @@ ecs-cli up --security-group "${CONTAINER_INSTANCE_SG_NAME}" \
            --cluster-config "${CLUSTER_CONFIG_NAME}" \
            --size "${TOTAL_CONTAINER_INSTANCE}" \
            --port "${CLUSTER_INBOUND_PORT}" \
-           --tags "${OWNER}=${OWNER_NAME}" \
+           --tags "${KEY}=${OWNER_KEY},${VALUE}=${OWNER_NAME}" \
            --force
+
+echo "ECS cluster up and running"
