@@ -6,6 +6,11 @@ set -e
 # export environment variables
 source .env
 
+ecs-cli down --cluster "${CLUSTER_NAME}" -f
+echo "deleted cluster"
+
+sleep "${DELAY}"
+
 elb_arn=$(aws elbv2 describe-load-balancers --names "${ELB_NAME}" | grep -i LoadBalancerArn | awk '{$1=$1};1' | cut -d " " -f 2 | cut -d "," -f 1 | sed 's/"//g')
 echo "${elb_arn}"
 
@@ -27,6 +32,3 @@ sleep "${DELAY}"
 
 aws ec2 delete-security-group --group-name "${ELB_SG_NAME}"
 echo "deleted ELB security group"
-
-ecs-cli down --cluster "${CLUSTER_NAME}" -f
-echo "deleted cluster"
