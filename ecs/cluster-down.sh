@@ -27,3 +27,6 @@ sleep "${DELAY}"
 
 aws ec2 delete-security-group --group-name "${ELB_SG_NAME}"
 echo "deleted ELB security group"
+
+ecs-cli down --cluster "${CLUSTER_NAME}" -f
+echo "deleted cluster"

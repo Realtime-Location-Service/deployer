@@ -79,14 +79,13 @@ echo "configured ECS cluster"
 
 ecs-cli up --security-group "${CONTAINER_INSTANCE_SG}" \
            --vpc "${VPC}" \
-           --subnets $SUBNETS \
+           --subnets $CLUSTER_SUBNETS \
            --keypair "${CONTAINER_INSTANCE_KP}" \
            --instance-type "${CONTAINER_INSTANCE_TYPE}" \
            --instance-role "${CONTAINER_INSTANCE_ROLE}" \
            --cluster-config "${CLUSTER_CONFIG_NAME}" \
            --size "${TOTAL_CONTAINER_INSTANCE}" \
-           --port "${CLUSTER_INBOUND_PORT}" \
-           --tags "${KEY}=${OWNER_KEY},${VALUE}=${OWNER_NAME}" \
+            --tags "${OWNER_KEY}=${OWNER_NAME}" \
            --force
 
 echo "ECS cluster up and running"
