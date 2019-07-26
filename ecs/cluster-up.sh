@@ -38,7 +38,7 @@ echo "allowed traffic from ELB to ECS container instance"
 
 # get ELB security group_id
 elb_sg_id=$(aws ec2 describe-security-groups --query "SecurityGroups[?GroupName=='$ELB_SG_NAME'].GroupId" --region "${CLUSTER_REGION}" --output text)
-echo "Fetched security ELB group id=$elb_sg_id"
+echo "Fetched ELB security group id=$elb_sg_id"
 
 # create application load balancer
 aws elbv2 create-load-balancer \
@@ -74,10 +74,12 @@ ecs-cli configure --cluster "${CLUSTER_NAME}" \
                   --region "${CLUSTER_REGION}" \
                   --default-launch-type "${LAUNCH_TYPE}" \
                   --config-name "${CLUSTER_CONFIG_NAME}"
-
 echo "configured ECS cluster"
 
-ecs-cli up --security-group "${CONTAINER_INSTANCE_SG}" \
+container_sg_id=$(aws ec2 describe-security-groups --query "SecurityGroups[?GroupName=='$CONTAINER_INSTANCE_SG'].GroupId" --region "${CLUSTER_REGION}" --output text)
+echo "Fetched container instance security group id=$container_sg_id"
+
+ecs-cli up --security-group "${container_sg_id}" \
            --vpc "${VPC}" \
            --subnets $CLUSTER_SUBNETS \
            --keypair "${CONTAINER_INSTANCE_KP}" \
@@ -85,7 +87,7 @@ ecs-cli up --security-group "${CONTAINER_INSTANCE_SG}" \
            --instance-role "${CONTAINER_INSTANCE_ROLE}" \
            --cluster-config "${CLUSTER_CONFIG_NAME}" \
            --size "${TOTAL_CONTAINER_INSTANCE}" \
-            --tags "${OWNER_KEY}=${OWNER_NAME}" \
+           --tags "${OWNER_KEY}=${OWNER_NAME}" \
            --force
 
 echo "ECS cluster up and running"
