@@ -75,4 +75,9 @@ ecs-cli configure --cluster "$CLUSTER_NAME" \
                   --config-name "$CLUSTER_CONFIG_NAME"
 echo "Configured ECS cluster $CLUSTER_CONFIG_NAME"
 
-exec ecs-cli compose service rm --cluster-config $CLUSTER_CONFIG_NAME --aws-profile $AWS_PROFILE
+if [[ -z $AWS_PROFILE ]]; then
+   exec ecs-cli compose service rm --cluster-config $CLUSTER_CONFIG_NAME
+else
+   exec ecs-cli compose service rm --cluster-config $CLUSTER_CONFIG_NAME --aws-profile $AWS_PROFILE
+fi
+
