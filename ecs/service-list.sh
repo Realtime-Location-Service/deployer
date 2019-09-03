@@ -32,4 +32,6 @@ ecs-cli configure --cluster "$CLUSTER_NAME" \
                   --config-name "$CLUSTER_CONFIG_NAME"
 echo "Configured ECS cluster $CLUSTER_CONFIG_NAME"
 
+echo "Listing services: "
 exec ecs-cli ps --cluster-config $CLUSTER_CONFIG_NAME --aws-profile $AWS_PROFILE
+

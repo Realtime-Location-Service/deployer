@@ -7,9 +7,13 @@
 #  User ec2-user                                                    #
 #  ControlPath ~/.ssh/rls-db-tunnel.ctl                             #
 #####################################################################
-
-ssh -f -N -T -M -L $DATABASE_PORT:$DATABASE_HOST:$DATABASE_PORT rls-db-proxy
-mysql -h 127.0.0.1 -P $DATABASE_PORT -u$DATABASE_ROOT -p$DATABASE_ROOT_PASSWORD <<MYSQL_SCRIPT
+HOST="$DATABASE_HOST"
+if [[ "$USE_PROXY_TUNNEL" = true ]]; then
+    echo "Using proxy tunnel..."
+    ssh -f -N -T -M -L "$DATABASE_PORT":"$DATABASE_HOST":"$DATABASE_PORT" rls-db-proxy
+    HOST=127.0.0.1
+fi
+mysql -h "$HOST" -P "$DATABASE_PORT" -u"$DATABASE_ROOT" -p"$DATABASE_ROOT_PASSWORD" <<MYSQL_SCRIPT
 CREATE DATABASE IF NOT EXISTS $DATABASE_IDS_DB_NAME;
 CREATE USER IF NOT EXISTS '$DATABASE_IDS_DB_USER'@'%' IDENTIFIED BY '$DATABASE_IDS_DB_PASSWORD';
 CREATE USER IF NOT EXISTS '$DATABASE_IDS_DB_USER'@'localhost' IDENTIFIED BY '$DATABASE_IDS_DB_PASSWORD';
@@ -30,4 +34,9 @@ GRANT ALL PRIVILEGES ON $DATABASE_HDS_DB_NAME.* TO '$DATABASE_HDS_DB_USER'@'loca
 GRANT SELECT, REFERENCES ON $DATABASE_IDS_DB_NAME.* TO '$DATABASE_HDS_DB_USER'@'%';
 GRANT SELECT, REFERENCES ON $DATABASE_IDS_DB_NAME.* TO '$DATABASE_HDS_DB_USER'@'localhost';
 MYSQL_SCRIPT
-ssh -T -O "exit" rls-db-proxy
+
+if [[ "$USE_PROXY_TUNNEL" = true ]]; then
+    echo "Closing proxy tunnel..."
+    ssh -T -O "exit" rls-db-proxy
+fi
+
