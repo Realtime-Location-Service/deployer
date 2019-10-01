@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  ping_service:
+    image: rls42/ping-api:1.1.0
+    volumes:
+      - "./logs:/app/lib/logs"
+    environment:
+      - "PING_API_CONSUL_URL=${PING_API_CONSUL_URL}"
+      - "PING_API_CONSUL_PATH=${PING_API_CONSUL_PATH}"
+    ports:
+      - "${SERVER_PORT}"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: ping_service
+        awslogs-region: $CLUSTER_REGION
+        awslogs-stream-prefix: ping_service

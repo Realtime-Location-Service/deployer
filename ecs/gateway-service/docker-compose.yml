@@ -1,0 +1,41 @@
+version: '3'
+services:
+  gateway-service:
+    image:  rls42/gateway-service:2.0.0
+    container_name: kong_prod
+    restart: always
+    environment:
+      - KONG_DATABASE=off
+      - KONG_LOG_LEVEL=debug
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_PLUGINS=bundled,rls-auth
+      - KONG_NGINX_PROXY_GZIP=on
+      - KONG_NGINX_PROXY_GZIP_TYPES="text/plain application/json"
+      - KONG_DECLARATIVE_CONFIG=/usr/local/share/kong.yml
+      - PING_URL=http://ec2-18-140-70-70.ap-southeast-1.compute.amazonaws.com:9001
+      - PING_RESPONSE_TIMEOUT=3000 #timeout in ms
+      - PING_RATE_LIMIT_PER_SEC=20
+      - PING_RATE_LIMIT_PER_MIN=100
+      - PING_RATE_LIMIT_POLICY=local #local/redis/cluster
+      - AUTH_URL=http://ec2-18-140-70-70.ap-southeast-1.compute.amazonaws.com:8001/api/v1/user/resolve
+      - AUTH_TIMEOUT=1 #timeout in sec
+      - META_URL=http://ec2-18-140-70-70.ap-southeast-1.compute.amazonaws.com:7001
+      - META_RESPONSE_TIMEOUT=3000 #timeout in ms
+      - HISTORY_URL=http://ec2-18-140-70-70.ap-southeast-1.compute.amazonaws.com:9010
+      - HISTORY_RESPONSE_TIMEOUT=3000 #timeout in ms
+      - AUTH_SERVICE_URL=http://ec2-18-140-70-70.ap-southeast-1.compute.amazonaws.com:8001
+      - AUTH_RESPONSE_TIMEOUT=3000 #timeout in ms
+      - AUTH_CACHE_TTL=300 # ttl in sec
+    ports:
+      - "80:8000"
+      - "443:8443"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: gateway_service
+        awslogs-region: $CLUSTER_REGION
+        awslogs-stream-prefix: gateway_service

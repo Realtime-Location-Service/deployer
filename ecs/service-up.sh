@@ -76,8 +76,8 @@ ecs-cli configure --cluster "$CLUSTER_NAME" \
 echo "Configured ECS cluster $CLUSTER_CONFIG_NAME"
 
 if [[ -z $AWS_PROFILE ]]; then
-   exec ecs-cli compose service up --create-log-groups --cluster-config $CLUSTER_CONFIG_NAME
+   exec ecs-cli compose --project-name $PROJECT_NAME service up --create-log-groups --cluster-config $CLUSTER_CONFIG_NAME --private-dns-namespace rls --vpc $VPC --enable-service-discovery
 else
-   exec ecs-cli compose service up --create-log-groups --cluster-config $CLUSTER_CONFIG_NAME --aws-profile $AWS_PROFILE
+   exec ecs-cli compose --project-name $PROJECT_NAME service up --create-log-groups --cluster-config $CLUSTER_CONFIG_NAME --private-dns-namespace rls --vpc $VPC --enable-service-discovery --aws-profile $AWS_PROFILE
 fi
 

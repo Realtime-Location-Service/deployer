@@ -7,34 +7,34 @@ set -e
 source .env
 
 # create sequrity group for ecs cluster
-aws ec2 create-security-group \
-        --group-name "${CONTAINER_INSTANCE_SG}" \
-        --description "${CONTAINER_INSTANCE_SG_DESC}" \
-        --vpc-id "${VPC}"
-echo "security group created for ECS cluster container instance"
+#aws ec2 create-security-group \
+#        --group-name "${CONTAINER_INSTANCE_SG}" \
+#        --description "${CONTAINER_INSTANCE_SG_DESC}" \
+#        --vpc-id "${VPC}"
+#echo "security group created for ECS cluster container instance"
 
 # create sequrity group for ecs ELB
-aws ec2 create-security-group \
-        --group-name "${ELB_SG_NAME}" \
-        --description "${ELB_SG_DESC}" \
-        --vpc-id "${VPC}"
-echo "security group created for ELB"
+#aws ec2 create-security-group \
+#        --group-name "${ELB_SG_NAME}" \
+#        --description "${ELB_SG_DESC}" \
+#        --vpc-id "${VPC}"
+#echo "security group created for ELB"
 
 # allow traffic for elb
-aws ec2 authorize-security-group-ingress \
-        --group-name "${ELB_SG_NAME}" \
-        --protocol tcp \
-        --port "${ELB_PORT}" \
-        --cidr "${TRAFFIC_FROM_ANYWHERE}"
-echo "allowed traffic for ELB"
+#aws ec2 authorize-security-group-ingress \
+#        --group-name "${ELB_SG_NAME}" \
+#        --protocol tcp \
+#        --port "${ELB_PORT}" \
+#        --cidr "${TRAFFIC_FROM_ANYWHERE}"
+#echo "allowed traffic for ELB"
 
 # allow traffic from elb
-aws ec2 authorize-security-group-ingress \
-        --group-name "${CONTAINER_INSTANCE_SG}" \
-        --protocol tcp \
-        --port 1-65535 \
-        --source-group "${ELB_SG_NAME}"
-echo "allowed traffic from ELB to ECS container instance"
+#aws ec2 authorize-security-group-ingress \
+#        --group-name "${CONTAINER_INSTANCE_SG}" \
+#        --protocol tcp \
+#        --port 1-65535 \
+#        --source-group "${ELB_SG_NAME}"
+#echo "allowed traffic from ELB to ECS container instance"
 
 # get ELB security group_id
 elb_sg_id=$(aws ec2 describe-security-groups --query "SecurityGroups[?GroupName=='$ELB_SG_NAME'].GroupId" --region "${CLUSTER_REGION}" --output text)

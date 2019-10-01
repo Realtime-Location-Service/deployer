@@ -10,7 +10,7 @@
 HOST="$DATABASE_HOST"
 if [[ "$USE_PROXY_TUNNEL" = true ]]; then
     echo "Using proxy tunnel..."
-    ssh -f -N -T -M -L "$DATABASE_PORT":"$DATABASE_HOST":"$DATABASE_PORT" rls-db-proxy
+    ssh -f -N -T -M -L 3307:"$DATABASE_HOST":"$DATABASE_PORT" rls-db-proxy
     HOST=127.0.0.1
 fi
 mysql -h "$HOST" -P "$DATABASE_PORT" -u"$DATABASE_ROOT" -p"$DATABASE_ROOT_PASSWORD" <<MYSQL_SCRIPT

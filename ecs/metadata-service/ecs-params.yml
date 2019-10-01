@@ -4,3 +4,6 @@ task_definition:
     id_service:
       cpu_shares: 0
       mem_reservation: 262144000
+      enable-service-discovery: true
+      private-dns-namespace: rls.prod
+

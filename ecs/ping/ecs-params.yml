@@ -1,6 +1,6 @@
 version: 1
 task_definition:
   services:
-    history_service:
+    ping_service:
       cpu_shares: 0
       mem_reservation: 262144000

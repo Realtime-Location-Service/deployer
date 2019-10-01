@@ -2,7 +2,7 @@ version: '3'
 
 services:
   history_service:
-    image: rls42/history-service:1.0.1
+    image: rls42/history-service:0.1.0
     volumes:
       - "./logs:/app/lib/logs"
     environment:
@@ -17,10 +17,10 @@ services:
       - "SPRING_RABBITMQ_USERNAME=${SPRING_RABBITMQ_USERNAME}"
       - "SPRING_RABBITMQ_PASSWORD=${SPRING_RABBITMQ_PASSWORD}"
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${SERVER_PORT}"
     logging:
       driver: awslogs
-      options: 
+      options:
         awslogs-group: history_service
         awslogs-region: $CLUSTER_REGION
         awslogs-stream-prefix: history_service
